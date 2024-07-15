@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-
-from openai import AsyncOpenAI
-import asyncio
-from openai_streaming import process_response
-from typing import AsyncGenerator, List, Dict
+from openai import OpenAI
 import json
 import os
 import sys
@@ -34,30 +30,28 @@ with open(config_path, 'r') as file:
 
 # Extract the OpenAI API key
 api_key = config.get("open_ai_key")
-client = AsyncOpenAI(api_key=api_key)
+client = OpenAI(api_key=api_key)
 
-# Define a content handler
-async def content_handler(content: AsyncGenerator[str, None]) -> str:
-    response = ""
-    async for token in content:
-        response += token
-        print("\033[92m" + token + "\033[0m", end="", flush=True)
-    return response
-
-async def get_response(conversation: List[Dict[str, str]]) -> str:
+def get_response(conversation: List[Dict[str, str]]) -> str:
     try:
-        response = await client.chat.completions.create(
+        response = client.chat.completions.create(
             model="gpt-4o",
             messages=conversation,
             stream=True
         )
-        final_response = await process_response(response, content_handler)
+        final_response = ""
+        for chunk in response:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                final_response += delta
+                print("\033[92m" + delta + "\033[0m", end="", flush=True)
+
         return final_response
     except Exception as e:
         print("\033[91m" + f"Error while getting response: {e}" + "\033[0m")
         sys.exit(1)
 
-async def main():
+def main():
     # Build the initial conversation history
     conversation = [{"role": "system", "content": "You are a helpful assistant."}]
     print()
@@ -86,13 +80,23 @@ async def main():
             continue
 
         conversation.append({"role": "user", "content": prompt})
-        response = await get_response(conversation)
+        response = get_response(conversation)
         # Convert the response to a string and append it to the conversation
         conversation.append({"role": "assistant", "content": str(response)})
         print()
         print()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
     print()
+
+
+
+
+
+
+
+
+
+
 
