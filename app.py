@@ -5,6 +5,7 @@ from typing import AsyncGenerator, List, Dict
 import json
 import os
 import sys
+import subprocess
 
 def find_config_file(filename, search_paths):
     for path in search_paths:
@@ -39,19 +40,10 @@ async def content_handler(content: AsyncGenerator[str, None]) -> str:
     async for token in content:
         response += token
         print("\033[92m" + token + "\033[0m", end="", flush=True)
-    print()  # Print a newline at the end of the response for better readability
     return response
 
 async def get_response(conversation: List[Dict[str, str]]) -> str:
     try:
-        # Debugging: Print the conversation to ensure it's correct
-        """
-        print("Debug: Sending conversation to OpenAI API")
-        for message in conversation:
-            print(f"{message['role']}: {message['content']}")
-        print("\n")
-        """
-
         response = await client.chat.completions.create(
             model="gpt-4o",
             messages=conversation,
@@ -68,8 +60,29 @@ async def main():
     conversation = [{"role": "system", "content": "You are a helpful assistant."}]
 
     while True:
-        prompt = input("\033[94mPrompt: \033[0m")
+        prompt = input("\033[94mPrompt: \033[0m").strip()
         print()
+
+        if prompt == 'vi':
+            temp_filename = "/tmp/vim_prompt.txt"
+            subprocess.call(['vim', temp_filename])
+            with open(temp_filename, 'r') as file:
+                prompt = file.read().strip()
+            os.remove(temp_filename)
+            if not prompt:
+                print("\033[91mNo prompt entered in Vim. Please try again.\033[0m")
+                continue
+            print(f"\033[94m{prompt}\033[0m")
+            print()
+        elif prompt == 'n':
+            conversation = [{"role": "system", "content": "You are a helpful assistant."}]
+            print("\033[92mNew conversation started.\033[0m")
+            continue
+
+        if not prompt:
+            print("\033[91mNo prompt entered. Please try again.\033[0m")
+            continue
+
         conversation.append({"role": "user", "content": prompt})
         response = await get_response(conversation)
         # Convert the response to a string and append it to the conversation
