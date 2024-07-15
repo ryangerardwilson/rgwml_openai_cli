@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from openai import AsyncOpenAI
 import asyncio
 from openai_streaming import process_response
@@ -58,7 +60,7 @@ async def get_response(conversation: List[Dict[str, str]]) -> str:
 async def main():
     # Build the initial conversation history
     conversation = [{"role": "system", "content": "You are a helpful assistant."}]
-
+    print()
     while True:
         prompt = input("\033[94mPrompt: \033[0m").strip()
         print()
