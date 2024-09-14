@@ -55,16 +55,21 @@ def main():
     # Build the initial conversation history
     conversation = [{"role": "system", "content": "You are a helpful assistant."}]
     print()
+
+    temp_filename = "/tmp/vim_prompt.txt"
+    
+    # Create the temp file to ensure it exists
+    with open(temp_filename, 'w') as temp_file:
+        temp_file.write("")
+        
     while True:
         prompt = input("\033[94mPrompt: \033[0m").strip()
         print()
 
         if prompt.lower() == 'vi':
-            temp_filename = "/tmp/vim_prompt.txt"
             subprocess.call(['vim', temp_filename])
             with open(temp_filename, 'r') as file:
                 prompt = file.read().strip()
-            os.remove(temp_filename)
             if not prompt:
                 print("\033[91mNo prompt entered in Vim. Please try again.\033[0m")
                 continue
@@ -89,14 +94,4 @@ def main():
 if __name__ == "__main__":
     main()
     print()
-
-
-
-
-
-
-
-
-
-
 
