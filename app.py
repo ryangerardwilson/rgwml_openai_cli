@@ -32,7 +32,7 @@ with open(config_path, 'r') as file:
 api_key = config.get("open_ai_key")
 client = OpenAI(api_key=api_key)
 
-def get_response(conversation: List[Dict[str, str]]) -> str:
+def get_response(conversation):
     try:
         response = client.chat.completions.create(
             model="gpt-4o",
@@ -59,7 +59,7 @@ def main():
         prompt = input("\033[94mPrompt: \033[0m").strip()
         print()
 
-        if prompt == 'vi':
+        if prompt.lower() == 'vi':
             temp_filename = "/tmp/vim_prompt.txt"
             subprocess.call(['vim', temp_filename])
             with open(temp_filename, 'r') as file:
@@ -70,7 +70,7 @@ def main():
                 continue
             print(f"\033[94m{prompt}\033[0m")
             print()
-        elif prompt == 'n':
+        elif prompt.lower() == 'n':
             conversation = [{"role": "system", "content": "You are a helpful assistant."}]
             print("\033[92mNew conversation started.\033[0m")
             continue
